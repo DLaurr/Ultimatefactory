@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Factory</title>
+    <style>
+        body {
+            background-color: grey;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+        }
+
+        .add-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 50%;
+            font-size: 36px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s;
+        }
+
+        .add-button:hover {
+            background-color: #45a049;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .image-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .modal button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .modal button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏭 Ultimate Factory</h1>
+        
+        <div class="gallery" id="gallery"></div>
+    </div>
+
+    <!-- Floating + Button -->
+    <button class="add-button" id="addBtn">+</button>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileInput" accept="image/*">
+
+    <!-- Modal for image preview -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add Image</h2>
+            <img id="previewImage" src="" style="width: 100%; border-radius: 4px; margin: 10px 0;">
+            <button id="confirmBtn">Add Picture</button>
+        </div>
+    </div>
+
+    <script>
+        const addBtn = document.getElementById('addBtn');
+        const fileInput = document.getElementById('fileInput');
+        const modal = document.getElementById('imageModal');
+        const closeBtn = document.querySelector('.close');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const gallery = document.getElementById('gallery');
+        const previewImage = document.getElementById('previewImage');
+
+        let selectedFile = null;
+
+        // Click + button to open file picker
+        addBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // When file is selected
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    previewImage.src = event.target.result;
+                    modal.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Close modal
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Confirm and add picture
+        confirmBtn.addEventListener('click', () => {
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // Save to localStorage
+                    const imageData = event.target.result;
+                    let images = JSON.parse(localStorage.getItem('uploadedImages')) || [];
+                    images.push(imageData);
+                    localStorage.setItem('uploadedImages', JSON.stringify(images));
+
+                    // Display the image
+                    displayImage(imageData);
+                    modal.style.display = 'none';
+                    selectedFile = null;
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        });
+
+        // Display image in gallery
+        function displayImage(imageData) {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            card.innerHTML = `<img src="${imageData}" alt="Uploaded image">`;
+            gallery.appendChild(card);
+        }
+
+        // Load images from localStorage on page load
+        window.addEventListener('load', () => {
+            const images = JSON.parse(localStorage.getItem('uploadedImages')) || [];
+            images.forEach(imageData => {
+                displayImage(imageData);
+            });
+        });
+    </script>
+</body>
+</html>
